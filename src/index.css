@@ -60,8 +60,9 @@ code {
 
 .game{
   text-align: center;
-  position: relative;
-  left: 10%;
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
   overflow: clip;
 }
 
@@ -80,7 +81,7 @@ code {
 
 .blocked{
   /*background-color: black;*/
-  border: 3px black solid;
+  border: 2px black solid;
 }
 .start{
   background-color: rgb(128, 255, 128);
@@ -93,4 +94,74 @@ code {
 }
 .path{
   background-color: rgb(128, 255, 128);
+}
+
+
+
+.slidercontainer {
+  width: inherit; /* Width of the outside container */
+  padding: 10px;
+  text-align: center;
+}
+.slidercontainer label{
+  text-align: right;
+  display: inline-block;
+  width: 20%;
+  margin-right: 10px;
+}
+.slidercontainer span{
+  /* text-align: left; */
+  /* display: inline-block; */
+  width: 18%;
+  margin-left: 10px;
+}
+
+.slider {
+  /* text-align: end; */
+  -webkit-appearance: none;
+  width: 70%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+.slider:hover{
+  opacity: 0.6;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #555555;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #555555;
+  cursor: pointer;
+}
+
+.buttons .button{
+  width: 100px;
+  height: 30px;
+  margin: 20px;
+  background-color: inherit;
+  border-color: gray;
+  border-style: solid;
+  border-radius: 4px;
+  border-width: 1px;
+  transition-duration: .2s;
+}
+.buttons .button:hover{
+  background-color: gray;
+  cursor:pointer;
 }
