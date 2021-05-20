@@ -8,8 +8,8 @@ class Game extends React.Component
 	constructor(props)
 	{
 		super(props);
-		const complextiy = 40;
-		const size = 50;
+		const complextiy = 30;
+		const size = 40;
 		const maze = this.generateMaze(size, complextiy);
 		this.state=(
 		{
@@ -18,10 +18,9 @@ class Game extends React.Component
 			maze: maze,
 			visited: [],
 			path: [],
-		});
-		this.aStarVisualised(maze[0], maze[size*size-1], (a, b)=>{
-			let key1 = a.getKey(), key2 = b.getKey();
-			return (Math.abs((key2%size)-(key1%size))+Math.abs(Math.floor(key2/size)-Math.floor(key1/size)))*2;
+			futureSize: size,
+			futureComplexity: complextiy,
+			abort: 2,
 		});
 	}
 
@@ -95,39 +94,49 @@ class Game extends React.Component
 		});
 		while(openSet.length>0)
 		{
-			current = openSet.reduce((previousValue, currentValue, currentIndex, Array)=>{
-				if(previousValue.distance+heuristic(previousValue.vertex, end)>currentValue.distance+heuristic(currentValue.vertex, end))
-					return currentValue;
-				return previousValue;
-			});
+			current = openSet[0];
 			if(current.vertex === end)
 				return {distance:current.distance,path:current.path};
 			current.vertex.getConnections().forEach(element => {
-				let other = openSet.find((value, index, obj)=>{return value.vertex===element.vertex;});
+				let other = openSet.find((value)=>{return value.vertex===element.vertex;});
 				if(other !== undefined)
 				{
 					if(other.distance>current.distance+element.distance)
 					{
 						other.distance = current.distance + element.distance;
 						other.path = current.path.concat([element.vertex]);
+						let index = openSet.findIndex((value)=>{
+							return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+						});
+						index = index===undefined?openSet.length-1:index;
+						openSet.splice(openSet.indexOf(other),1);
+						openSet.splice(index,0,other);
 					}
 				}
 				else
 				{
-					other = closedSet.find((value, index, obj)=>{return value.vertex===element.vertex;});
+					other = closedSet.find((value)=>{return value.vertex===element.vertex;});
 					if(other !== undefined)
 					{
 						if(other.distance>current.distance+element.distance)
 						{
 							other.distance = current.distance + element.distance;
 							other.path = current.path.concat([element.vertex]);
-							openSet.push(other);
+							let index = openSet.findIndex((value)=>{
+								return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+							});
+							index = index===undefined?openSet.length-1:index;
+							openSet.splice(index,0,other);
 							closedSet.splice(closedSet.indexOf(other),1);
 						}
 					}
 					else
 					{
-						openSet.push({
+						let index = openSet.findIndex((value)=>{
+							return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+						});
+						index = index===undefined?openSet.length-1:index;
+						openSet.splice(index,0,{
 							vertex: element.vertex,
 							distance: current.distance+element.distance,
 							path: current.path.concat([element.vertex]),
@@ -156,42 +165,52 @@ class Game extends React.Component
 		});
 		while(openSet.length>0)
 		{
-			current = openSet.reduce((previousValue, currentValue, currentIndex, Array)=>{
-				if(previousValue.distance+heuristic(previousValue.vertex, end)>currentValue.distance+heuristic(currentValue.vertex, end))
-					return currentValue;
-				return previousValue;
-			});
+			current = openSet[0];
 			if(current.vertex === end)
 			{
 				this.visualise(closedSet.map((value)=>{return value.vertex;}), current.path);
 				return {distance:current.distance,path:current.path};
 			}
 			current.vertex.getConnections().forEach(element => {
-				let other = openSet.find((value, index, obj)=>{return value.vertex===element.vertex;});
+				let other = openSet.find((value)=>{return value.vertex===element.vertex;});
 				if(other !== undefined)
 				{
 					if(other.distance>current.distance+element.distance)
 					{
 						other.distance = current.distance + element.distance;
 						other.path = current.path.concat([element.vertex]);
+						let index = openSet.findIndex((value)=>{
+							return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+						});
+						index = index===undefined?openSet.length-1:index;
+						openSet.splice(openSet.indexOf(other),1);
+						openSet.splice(index,0,other);
 					}
 				}
 				else
 				{
-					other = closedSet.find((value, index, obj)=>{return value.vertex===element.vertex;});
+					other = closedSet.find((value)=>{return value.vertex===element.vertex;});
 					if(other !== undefined)
 					{
 						if(other.distance>current.distance+element.distance)
 						{
 							other.distance = current.distance + element.distance;
 							other.path = current.path.concat([element.vertex]);
-							openSet.push(other);
+							let index = openSet.findIndex((value)=>{
+								return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+							});
+							index = index===undefined?openSet.length-1:index;
+							openSet.splice(index,0,other);
 							closedSet.splice(closedSet.indexOf(other),1);
 						}
 					}
 					else
 					{
-						openSet.push({
+						let index = openSet.findIndex((value)=>{
+							return (value.distance+heuristic(value.vertex, end))>=(current.distance+element.distance+heuristic(element.vertex, end));
+						});
+						index = index===undefined?openSet.length-1:index;
+						openSet.splice(index,0,{
 							vertex: element.vertex,
 							distance: current.distance+element.distance,
 							path: current.path.concat([element.vertex]),
@@ -202,22 +221,62 @@ class Game extends React.Component
 			closedSet.push(current);
 			openSet.splice(openSet.indexOf(current),1);
 
-			this.visualise(closedSet.map((value)=>{return value.vertex;}), current.path);
-			await new Promise(resolve=>setTimeout(resolve, 10));
+			if(this.visualise(closedSet.map((value)=>{return value.vertex;}), current.path)===1)
+			{
+				return null;
+			}
+			await new Promise(resolve=>setTimeout(resolve, 20));
 		}
 		return null;
 	}
 
 	visualise(closedSet, path)
 	{
+		if(this.state!==undefined) 
+		{
+			if(this.state.abort===1)
+			{
+				this.abort();
+				return 1;
+			}
+		}
 		this.setState({visited:closedSet, path:path});
+		return 0;
 	}
 
-	// heuristic(a, b)
-	// {
-	// 	let key1 = a.getKey(), key2 = b.getKey();
-	// 	return (Math.abs((key2%side)-(key2%side))+Math.abs(Math.floor(key2/side)-Math.floor(key1/side)))*2;
-	// }
+	abort()
+	{
+		this.setState({abort:2});
+	}
+
+	heuristic(a, b)
+	{
+		let key1 = a.getKey(), key2 = b.getKey();
+		return (Math.abs((key2%this.state.size)-(key1%this.state.size))+Math.abs(Math.floor(key2/this.state.size)-Math.floor(key1/this.state.size)))*2;
+	}
+
+	async restart()
+	{
+		if(this.state.abort===0)
+		{
+			this.setState({abort:1});
+			do{await new Promise(resolve=>setTimeout(resolve,10));}while(this.state.abort===1);
+		}
+		this.setState({abort:0});
+		const maze = this.state.maze;
+		this.aStarVisualised(maze[0],maze[maze.length-1],(a,b)=>{return this.heuristic(a,b)});
+	}
+
+	async regenerate()
+	{
+		if(this.state.abort===0)
+		{
+			this.setState({abort:1});
+			do{await new Promise(resolve=>setTimeout(resolve,10));}while(this.state.abort===1);
+		}
+		const maze = this.generateMaze(this.state.futureSize, this.state.futureComplexity);
+		this.setState({maze:maze,size:this.state.futureSize, complexity:this.state.futureComplexity, path:[],visited:[]});
+	}
 
 	render()
 	{
@@ -228,11 +287,55 @@ class Game extends React.Component
 				</div>
 				<div className="options">
 					<div className="buttons">
-
+						<Buttons 
+							restart={()=>{this.restart()}}
+							regenerate={()=>{this.regenerate()}}
+						/>
 					</div>
 					<div className="sliders">
-
+						<Sliders 
+							complexity={this.state.futureComplexity} 
+							size ={this.state.futureSize} 
+							changeSize={(value)=>{this.setState({futureSize:value});}}
+							changeComplexity={(value)=>{this.setState({futureComplexity:value});}}
+						/>
 					</div>
+				</div>
+			</div>
+		);
+	}
+}
+
+class Sliders extends React.Component
+{
+	render()
+	{
+		return(
+			<div>
+				<div className="sizeslider, slidercontainer">
+					<label>Size:       </label>       
+					<input type="range" min="20" max="60" value={this.props.size} className="slider" onInput={(value)=>{this.props.changeSize(value.target.value);}}/>
+					<span>{this.props.size}</span>
+				</div>
+				<div className="complexityslider, slidercontainer">
+					<label>Complexity: </label>
+					<input type="range" min="20" max="40" value={this.props.complexity} className="slider" onInput={(value)=>{this.props.changeComplexity(value.target.value);}}/>
+					<span>{this.props.complexity}</span>
+				</div>
+			</div>
+		);
+	}
+}
+
+class Buttons extends React.Component
+{
+	render()
+	{
+		return (
+			<div>
+				<div className="buttoncontainer">
+					<input type="button" value="Start" className="button" onClick={()=>this.props.restart()}></input>
+					<input type="button" value="Regenerate" className="button" onClick={()=>this.props.regenerate()}></input>
 				</div>
 			</div>
 		);
@@ -258,7 +361,7 @@ class Maze extends React.Component
 				if(path.indexOf(maze[i*size+j])>-1) blocked = 'path';
 				if(i===0&&j===0) blocked = 'start';
 				if(i===size-1&&j===size-1) blocked = 'end';
-				let padding = (300/size)+"px";
+				let padding = (window.innerHeight/3/size)+"px";
 				let borderStyle = "none";
 				if(maze[i*size+j]===null)
 				{
@@ -266,50 +369,50 @@ class Maze extends React.Component
 					borderStyle = "";
 					if(i>0&&maze[(i-1)*size+j]===null)
 					{
-						padding+=(300/size+"px ");
+						padding+=(window.innerHeight/3/size+"px ");
 						borderStyle+="none ";
 					}
 					else
 					{
-						padding+=((300/size-3)+"px ");
+						padding+=((window.innerHeight/3/size-2)+"px ");
 						borderStyle+="solid ";
 					}
 					if(j<(size-1)&&maze[(i)*size+j+1]===null)
 					{
-						padding+=(300/size+"px ");
+						padding+=(window.innerHeight/3/size+"px ");
 						borderStyle+="none ";
 					}
 					else
 					{
-						padding+=((300/size-3)+"px ");
+						padding+=((window.innerHeight/3/size-2)+"px ");
 						borderStyle+="solid ";
 					}
 					if(i<(size-1)&&maze[(i+1)*size+j]===null)
 					{
-						padding+=(300/size+"px ");
+						padding+=(window.innerHeight/3/size+"px ");
 						borderStyle+="none ";
 					}
 					else
 					{
-						padding+=((300/size-3)+"px ");
+						padding+=((window.innerHeight/3/size-2)+"px ");
 						borderStyle+="solid ";
 					}
 					if(j>0&&maze[(i)*size+j-1]===null)
 					{
-						padding+=(300/size+"px ");
+						padding+=(window.innerHeight/3/size+"px ");
 						borderStyle+="none ";
 					}
 					else
 					{
-						padding+=((300/size-3)+"px ");
+						padding+=((window.innerHeight/3/size-2)+"px ");
 						borderStyle+="solid ";
 					}
 				}
 				cols.push(<td className={blocked} key={i*size+j} style={{padding:padding, borderStyle:borderStyle}}></td>);
 			}
-			rows.push(<tr>{cols}</tr>);
+			rows.push(<tr key={i}>{cols}</tr>);
 		}
-		return(<table className="maze">{rows}</table>);
+		return(<table className="maze"><tbody>{rows}</tbody></table>);
 	}
 }
 
