@@ -169,6 +169,7 @@ class Game extends React.Component
 			if(current.vertex === end)
 			{
 				this.visualise(closedSet.map((value)=>{return value.vertex;}), current.path);
+				this.abort();
 				return {distance:current.distance,path:current.path};
 			}
 			current.vertex.getConnections().forEach(element => {
@@ -227,6 +228,7 @@ class Game extends React.Component
 			}
 			await new Promise(resolve=>setTimeout(resolve, 20));
 		}
+		this.abort();
 		return null;
 	}
 
@@ -274,6 +276,7 @@ class Game extends React.Component
 			this.setState({abort:1});
 			do{await new Promise(resolve=>setTimeout(resolve,10));}while(this.state.abort===1);
 		}
+		this.setState({abort:2});
 		const maze = this.generateMaze(this.state.futureSize, this.state.futureComplexity);
 		this.setState({maze:maze,size:this.state.futureSize, complexity:this.state.futureComplexity, path:[],visited:[]});
 	}
